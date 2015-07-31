@@ -5,10 +5,10 @@ from cgi import parse_qs, escape
 from wsgiref.simple_server import make_server
 import urllib
 import json
-import vk
+import vk_api
 
 is_auth = False
-vkapi = vk.API
+vkapi = vk_api.VkApi('login', 'password')
 
 # $c - commit
 # $n - build num
@@ -83,11 +83,11 @@ def application(environ, start_response):
         length = int(environ.get('CONTENT_LENGTH', '0'))
 
         if not is_auth:
-            vkapi = vk.API(app_id=app_id, user_login=user_login, user_password=user_password, scope="messages,friends")
+            vkapi.authorization()
             is_auth = True
         
         message = format_message(environ['wsgi.input'].read(length), message_format) 
-        vkapi.messages.send(user_ids=user_ids, message=message)
+        vkapi.method('messages.send', {'user_ids' : user_ids, 'message' : message})
     
     status = '200 OK'
     response_headers = [('Content-Type', "text/plain"), ('Content-Length', str(len("")))]
